@@ -1,5 +1,7 @@
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+
 import {
 	Card,
 	CardAction,
@@ -26,8 +28,11 @@ import {
 } from '@/components/ui/table';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
-import { Input } from '@headlessui/react';
-import { Head, router, useForm, usePage } from '@inertiajs/react';
+
+import { PermissionPagination } from '@/types/role_permission';
+
+import TablePagination from '@/components/table-pagination';
+import { Head, useForm, usePage } from '@inertiajs/react';
 import { Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
@@ -39,40 +44,95 @@ const breadcrumbs: BreadcrumbItem[] = [
 	},
 ];
 
-export default function PermissionIndex() {
+export default function PermissionIndex({
+	permissions,
+}: {
+	permissions: PermissionPagination;
+}) {
 	const [openAddPermissionDialog, setOpenAddPermissionDialog] =
 		useState(false);
+	const [openEditPermissionDialog, setOpenEditPermissionDialog] =
+		useState(false);
 
-        const {flash} = usePage<{flash: {success?: string}}>().props;
+	const { flash } = usePage<{
+		flash: {
+			message?: string;
+			type?: 'success' | 'error' | 'warning';
+		};
+	}>().props;
 
-        useEffect(() => {
-            if (flash.success) {
-                toast.success(flash.success);
-            }  
-        }, [flash.success]);    
+	useEffect(() => {
+		if (flash?.message) {
+			reset();
+			setOpenAddPermissionDialog(false);
+			setOpenEditPermissionDialog(false);
+			toast.success(flash.message);
+		}
+	}, [flash?.message]);
 
-	const { data, setData, post, processing, errors, reset } = useForm({
+	const {
+		data,
+		setData,
+		post,
+		delete: destroy,
+		put,
+		processing,
+		errors,
+		reset,
+	} = useForm({
+		id: 0,
 		name: '',
 	});
 
-    function submit(e: React.FormEvent<HTMLFormElement>) {
-        e.preventDefault();
-        post('/permissions', {
-            onSuccess: () => {
-                reset('name');
-            },
-        });
-    }   
+	function submit(e: React.FormEvent<HTMLFormElement>) {
+		e.preventDefault();
+		post('/permissions', {
+			onSuccess: () => {
+				reset('name');
+				setOpenAddPermissionDialog(false);
+			},
+		});
+	}
+
+	function edit(permission: any) {
+		setData({
+			id: permission.id,
+			name: permission.name,
+		});
+		setOpenEditPermissionDialog(true);
+	}
+
+	function update(e: React.FormEvent<HTMLFormElement>) {
+		e.preventDefault();
+
+		put(`/permissions/${data.id}`, {
+			onSuccess: () => {
+				setOpenEditPermissionDialog(false);
+				reset('name', 'id');
+			},
+		});
+	}
+
+	function handleDelete(id: number) {
+		if (!confirm('Are you sure you want to delete this permission?'))
+			return;
+
+		destroy(`/permissions/${id}`, {
+			onSuccess: () => {
+				toast.success('Permission deleted successfully');
+			},
+		});
+	}
+
 	return (
 		<AppLayout breadcrumbs={breadcrumbs}>
 			<Head title="Permission" />
 			<div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
 				<Card>
-					<CardHeader className="d-flex justify-content-between items-center">
+					<CardHeader className="flex items-center justify-between">
 						<CardTitle>Permission Management</CardTitle>
 						<CardAction>
 							<Button
-								variant={'default'}
 								onClick={() => setOpenAddPermissionDialog(true)}
 							>
 								Add Permission
@@ -99,45 +159,74 @@ export default function PermissionIndex() {
 								</TableRow>
 							</TableHeader>
 							<TableBody>
-								<TableRow className="odd:bg-slate-100 dark:odd:bg-slate-800">
-									<TableCell>1</TableCell>
-									<TableCell>view Dash</TableCell>
-									<TableCell>1220102</TableCell>
-									<TableCell>
-										<Button
-											variant={'outline'}
-											className="text-blue-600"
+								{permissions.data.map((permission, index) => (
+									<TableRow
+										key={permission.id}
+										className="odd:bg-slate-100 dark:odd:bg-slate-800"
+									>
+										<TableCell>{index + 1}</TableCell>
+										<TableCell>{permission.name}</TableCell>
+										<TableCell>
+											{permission.created_at}
+										</TableCell>
+										<TableCell>
+											<Button
+												variant="outline"
+												className="text-blue-600"
+												onClick={() => edit(permission)}
+											>
+												Edit
+											</Button>
+											<Button
+												onClick={() =>
+													handleDelete(permission.id)
+												}
+												variant="destructive"
+												className="ml-3 bg-red-600"
+											>
+												Delete
+											</Button>
+										</TableCell>
+									</TableRow>
+								))}
+								{permissions?.data?.length === 0 && (
+									<TableRow>
+										<TableCell
+											colSpan={4}
+											className="text-center"
 										>
-											Edit
-										</Button>
-										<Button
-											variant={'destructive'}
-											className="text-white-600 ml-3 bg-red-600"
-										>
-											Delete
-										</Button>
-									</TableCell>
-								</TableRow>
+											No permissions found
+										</TableCell>
+									</TableRow>
+								)}
 							</TableBody>
 						</Table>
 					</CardContent>
+					{permissions.data.length > 0 ? (
+						<TablePagination pagination={permissions} />
+					) : (
+						<div className="h-full p-4 text-center text-gray-500">
+							No pagination available
+						</div>
+					)}
 				</Card>
 				{/* add here permission dialog box  */}
 				<Dialog
 					open={openAddPermissionDialog}
 					onOpenChange={setOpenAddPermissionDialog}
 				>
-					<form onSubmit={submit}>
-						<DialogContent className="sm:max-w-[425px]">
+					<DialogContent className="sm:max-w-[425px]">
+						<form onSubmit={submit}>
 							<DialogHeader>
 								<DialogTitle>Add new Permission</DialogTitle>
 							</DialogHeader>
 							<hr />
 							<div className="grid gap-4">
 								<div className="grid gap-3">
-									<Label htmlFor="name-1">
+									<Label htmlFor="name">
 										Permission Name
 									</Label>
+
 									<Input
 										id="name"
 										name="name"
@@ -148,19 +237,85 @@ export default function PermissionIndex() {
 										}
 										aria-invalid={!!errors.name}
 									/>
-                                        <InputError message={errors.name} className="mt-2"></InputError>
+
+									<InputError
+										message={errors.name}
+										className="mt-2"
+									/>
 								</div>
 							</div>
-							<DialogFooter className="mt-2">
+
+							<DialogFooter className="mt-4">
 								<DialogClose asChild>
-									<Button variant="outline">Cancel</Button>
+									<Button variant="outline" type="button">
+										Cancel
+									</Button>
 								</DialogClose>
-								<Button type="submit" disabled={processing} >
-                                    {processing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                   <span>Create</span> </Button>
+
+								<Button type="submit" disabled={processing}>
+									{processing && (
+										<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+									)}
+									Create
+								</Button>
 							</DialogFooter>
-						</DialogContent>
-					</form>
+						</form>
+					</DialogContent>
+				</Dialog>
+
+				{/* addd permsions dialog box end here  */}
+
+				{/* End here permission dialog box  */}
+				<Dialog
+					open={openEditPermissionDialog}
+					onOpenChange={setOpenEditPermissionDialog}
+				>
+					<DialogContent className="sm:max-w-[425px]">
+						<form onSubmit={update}>
+							<DialogHeader>
+								<DialogTitle>Edit Permission</DialogTitle>
+							</DialogHeader>
+							<hr />
+							<div className="grid gap-4">
+								<div className="grid gap-3">
+									<Label htmlFor="name">
+										Permission Name
+									</Label>
+
+									<Input
+										id="name"
+										name="name"
+										type="text"
+										value={data.name}
+										onChange={(e) =>
+											setData('name', e.target.value)
+										}
+										aria-invalid={!!errors.name}
+									/>
+
+									<InputError
+										message={errors.name}
+										className="mt-2"
+									/>
+								</div>
+							</div>
+
+							<DialogFooter className="mt-4">
+								<DialogClose asChild>
+									<Button variant="outline" type="button">
+										Cancel
+									</Button>
+								</DialogClose>
+
+								<Button type="submit" disabled={processing}>
+									{processing && (
+										<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+									)}
+									Update
+								</Button>
+							</DialogFooter>
+						</form>
+					</DialogContent>
 				</Dialog>
 			</div>
 		</AppLayout>
