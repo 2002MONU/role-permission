@@ -14,12 +14,23 @@ export interface Pagination {
 	per_page: number;
 }
 
+export interface SingleRole {
+	id: number;
+	name: string;
+	created_at: string;
+	permissions: SinglePermission[];
+}
+
+export interface PermissionPagination extends Pagination {
+	data: SinglePermission[];
+}
+
 export interface SinglePermission {
 	id: number;
 	name: string;
 	created_at: string;
 }
 
-export interface PermissionPagination extends Pagination {
-	data: SinglePermission[];
+export interface Role extends Pagination {
+	data: SingleRole[];
 }

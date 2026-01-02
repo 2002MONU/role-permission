@@ -263,7 +263,7 @@ export default function PermissionIndex({
 					</DialogContent>
 				</Dialog>
 
-				{/* addd permsions dialog box end here  */}
+				{/* add permission dialog box end here  */}
 
 				{/* End here permission dialog box  */}
 				<Dialog
