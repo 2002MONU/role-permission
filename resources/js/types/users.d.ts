@@ -4,6 +4,7 @@ export interface SingleUser {
     id: number;
     name: string;
     email: string;
+    roles: string[];
     created_at: string;
 }
  
