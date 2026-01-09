@@ -41,9 +41,9 @@ export default function CreateUser({ roles = [] }: { roles: { id: number; name: 
                     <CardHeader className="flex items-center justify-between">
                         <CardTitle>Create User</CardTitle>
                         <CardAction>
-                            <Link href="/users">
-                                <Button>Go Back</Button>
-                            </Link>
+                            <Button asChild>
+                              <Link href="/users">Go Back</Link>
+                            </Button>
                         </CardAction>
                     </CardHeader>
                     <hr />

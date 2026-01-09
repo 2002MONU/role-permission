@@ -70,9 +70,9 @@ export default function Roles({
                     <CardHeader className="flex items-center justify-between">
                         <CardTitle>Roles Management</CardTitle>
                         <CardAction>
-                           <Link href="/roles/create">
-                            <Button>Add New Role</Button>
-                           </Link>
+                           <Button asChild>
+                             <Link href="/roles/create">Add New Role</Link>
+                           </Button>
                         </CardAction>
                     </CardHeader>
                     <hr />
@@ -114,14 +114,9 @@ export default function Roles({
                                         </TableCell>
                                         <TableCell>{role.created_at}</TableCell>
                                         <TableCell>
-                                            <Link href={`/roles/${role.id}/edit`}>
-                                                <Button
-                                                    variant="outline"
-                                                    className="text-blue-600"
-                                                >
-                                                    Edit
-                                                </Button>
-                                            </Link>
+                                            <Button asChild variant="outline" className="text-blue-600">
+                                              <Link href={`/roles/${role.id}/edit`}>Edit</Link>
+                                            </Button>
                                             <Button
                                                 onClick={() => deleteRole(role.id)}
                                                 variant="destructive"

@@ -48,9 +48,9 @@ export default function EditRole({ permissions = [], role }: { permissions?: Sin
                     <CardHeader className="flex items-center justify-between">
                         <CardTitle>Edit Role</CardTitle>
                         <CardAction>
-                            <Link href="/roles">
-                                <Button>Go Back</Button>
-                            </Link>
+                            <Button asChild>
+                              <Link href="/roles">Go Back</Link>
+                            </Button>
                             <Button onClick={() => deleteRole()} variant="destructive" className="ml-3 bg-red-600">
                                 Delete
                             </Button>

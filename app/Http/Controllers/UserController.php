@@ -87,6 +87,13 @@ class UserController extends Controller
     public function edit(string $id)
     {
         //
+
+        $user = User::with('roles')->findOrFail($id);
+        $roles = Role::all(['id', 'name']);
+        return Inertia::render('users/edit', [
+            'user' => $user,
+            'roles' => $roles,
+        ]);
     }
 
     /**
@@ -95,6 +102,29 @@ class UserController extends Controller
     public function update(Request $request, string $id)
     {
         //
+
+        $user = User::findOrFail($id);
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
+           
+            'roles' => 'array',
+            'roles.*' => 'integer|exists:roles,id',
+        ]);
+       $user->update([
+            'name' => $request->name,
+            'email' => $request->email,
+        ]);
+        if ($request->has('roles')) {
+            // Roles submitted as IDs — sync via relationship so Spatie doesn't try to look up by name
+            $user->roles()->sync($request->roles);
+        } else {
+            // If no roles were submitted, detach all roles
+            $user->roles()->detach();
+        }
+        return redirect()->route('users.index')->with('success', 'User updated successfully.');
+        
+
     }
 
     /**
@@ -103,5 +133,8 @@ class UserController extends Controller
     public function destroy(string $id)
     {
         //
+        $user = User::findOrFail($id);
+        $user->delete();
+        return redirect()->route('users.index')->with('success', 'User deleted successfully.');
     }
 }

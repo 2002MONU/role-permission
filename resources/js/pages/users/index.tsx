@@ -1,7 +1,4 @@
-
 import { Button } from '@/components/ui/button';
-
-
 import {
     Card,
     CardAction,
@@ -69,9 +66,9 @@ export default function Users({
                     <CardHeader className="flex items-center justify-between">
                         <CardTitle>User Management</CardTitle>
                         <CardAction>
-                           <Link href="/users/create">
-                            <Button>Add New User</Button>
-                           </Link>
+                           <Button asChild>
+                             <Link href="/users/create">Add New User</Link>
+                           </Button>
                         </CardAction>
                     </CardHeader>
                     <hr />
@@ -123,14 +120,9 @@ export default function Users({
                                         </TableCell>
                                         <TableCell>{user.created_at}</TableCell>
                                         <TableCell>
-                                            <Link href={`/users/${user.id}/edit`}>
-                                                <Button
-                                                    variant="outline"
-                                                    className="text-blue-600"
-                                                >
-                                                    Edit
-                                                </Button>
-                                            </Link>
+                                            <Button asChild variant="outline" className="text-blue-600">
+                                              <Link href={`/users/${user.id}/edit`}>Edit</Link>
+                                            </Button>
                                             <Button
                                                 onClick={() => deleteUser(user.id)}
                                                 variant="destructive"
