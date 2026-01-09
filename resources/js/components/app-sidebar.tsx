@@ -21,21 +21,25 @@ const mainNavItems: NavItem[] = [
         title: 'Dashboard',
         href: dashboard(),
         icon: LayoutGrid,
+        permission: 'view dashboard',
     },
     {
         title: 'Permissions',
         href: '/permissions',
         icon: Lock,
+        permission: 'view permissions',
     },
     {
         title: 'Roles',
         href: '/roles',
         icon: Users,
+        permission: 'view roles',
     },
     {
         title: 'Users',
         href: '/users',
         icon: Users,
+        permission: 'view users',
     }
 ];
 
